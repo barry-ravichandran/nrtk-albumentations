@@ -39,7 +39,7 @@ We use pre-commit hooks to maintain consistent code quality. These hooks automat
 
 ### Python Version and Type Hints
 
-- Use Python 3.9+ features and syntax
+- Use Python 3.10+ features and syntax
 - Always include type hints using Python 3.10+ typing syntax:
 
   ```python

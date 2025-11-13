@@ -6,7 +6,7 @@ This guide is provided for Kitware developers and NRTK maintainers working on th
 
 ## Prerequisites
 
-- Python 3.9 or higher
+- Python 3.10+
 - Poetry 2.0+
 - Git
 
