@@ -72,7 +72,6 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -100,15 +99,18 @@ exclude = [ "tests", "tools", "benchmark", "docs", ".github" ]
 Homepage = "https://nrtk.readthedocs.io/"
 
 [tool.poetry.dependencies]
-python = ">=3.9"
-numpy = ">=1.24.4"
-scipy = ">=1.10.0"
+python = "^3.10"
+numpy = [
+  { version = "^1.26", python = "<3.13" },  # CVE-2021-34141
+  { version = ">=2.1", python = ">=3.13" }, # numpy==2.1 is the first release supporting python 3.13
+]
+scipy = ">=1.14.1"
 simsimd = ">=5.9.2"
 stringzilla = ">=3.10.4"
 PyYAML = "*"
-typing-extensions = { version = ">=4.9.0", python = "<3.10" }
+typing-extensions = ">=4.9.0"
 pydantic = ">=2.9.2"
-eval-type-backport = { version = "*", python = "<3.10" }
+eval-type-backport = "*"
 opencv-python-headless = ">=4.9.0.80"
 
 [tool.poetry.extras]
@@ -134,13 +136,13 @@ types-PyYAML = "*"
 types-setuptools = "*"
 
 [tool.ruff]
-# Exclude a variety of commonly ignored directories.
-target-version = "py39"
+# Assume Python 3.10
+target-version = "py310"
 
 line-length = 120
 indent-width = 4
 
-# Assume Python 3.9
+# Exclude a variety of commonly ignored directories.
 exclude = [
   ".bzr",
   ".direnv",
@@ -232,7 +234,7 @@ lint.per-file-ignores."tools/*" = [
 [tool.mypy]
 plugins = [ "pydantic.mypy" ]
 
-python_version = "3.9"
+python_version = "^3.10"
 ignore_missing_imports = true
 follow_imports = "silent"
 warn_redundant_casts = true
