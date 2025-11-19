@@ -30,7 +30,7 @@ Image augmentation is used in deep learning and computer vision tasks to increas
 This package is designed to be installed as a dependency of NRTK. For standalone installation, use:
 
 ```bash
-pip install nrtk-albumentations
+pip install nrtk-albumentations (opencv-python|opencv-python-headless)
 ```
 
 ## A Simple Example

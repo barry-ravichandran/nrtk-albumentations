@@ -111,7 +111,6 @@ PyYAML = "*"
 typing-extensions = ">=4.9.0"
 pydantic = ">=2.9.2"
 eval-type-backport = "*"
-opencv-python-headless = ">=4.9.0.80"
 
 [tool.poetry.extras]
 hub = [ "huggingface-hub" ]
@@ -121,6 +120,7 @@ text = [ "pillow" ]
 [tool.poetry.group.dev.dependencies]
 deepdiff = ">=8.0.1"
 eval-type-backport = "*"
+opencv-python-headless = ">=4.9.0.80"
 pre-commit = ">=3.5.0"
 pytest = ">=8.3.3"
 pytest-cov = ">=5.0.0"

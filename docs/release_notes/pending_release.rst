@@ -8,6 +8,8 @@ Updates / New Features
 
 * Updated supported python versions to ^3.10
 
+* Removed OpenCV dependency. The package will no longer be able to be used standalone.
+
 Fixes
 -----
 

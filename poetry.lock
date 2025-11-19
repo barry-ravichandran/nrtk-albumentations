@@ -1029,7 +1029,7 @@ version = "4.11.0.86"
 description = "Wrapper package for OpenCV python bindings."
 optional = false
 python-versions = ">=3.6"
-groups = ["main"]
+groups = ["dev"]
 markers = "python_version < \"3.13\""
 files = [
     {file = "opencv-python-headless-4.11.0.86.tar.gz", hash = "sha256:996eb282ca4b43ec6a3972414de0e2331f5d9cda2b41091a49739c19fb843798"},
@@ -1055,7 +1055,7 @@ version = "4.12.0.88"
 description = "Wrapper package for OpenCV python bindings."
 optional = false
 python-versions = ">=3.6"
-groups = ["main"]
+groups = ["dev"]
 markers = "python_version >= \"3.13\""
 files = [
     {file = "opencv-python-headless-4.12.0.88.tar.gz", hash = "sha256:cfdc017ddf2e59b6c2f53bc12d74b6b0be7ded4ec59083ea70763921af2b6c09"},
@@ -2362,4 +2362,4 @@ text = []
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "93bce1bc8eac44209c69d68025a4b44e80839880cf8122e67464877ac1dd62e4"
+content-hash = "5f1dbdb4408c394ecc87f6d4fb3761ff6b4dfb81af810d537cb250f44e0a5551"
