@@ -1,13 +1,13 @@
 name: CI
 # Controls when the action will run.
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
+  # Triggers the workflow on push or pull request events but only for the main branch
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
       - release*
   schedule:
     # Nightly run unit tests to check for implicit dependency issues between pull requests.
@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
         include:
           - operating-system: ubuntu-latest
             path: ~/.cache/pip
@@ -67,26 +67,6 @@ jobs:
         fi
       shell: bash
 
-    # If OpenCV python package `opencv-python` is installed, replace it with
-    # the same version of `opencv-python-headless`. This is needed because
-    # "normal" `opencv-python` has graphics library requirements that are not
-    # required, but `opencv-python` is the standard library to depend on.
-    # NOTE: need to include opencv-python-headless in uninstall to clear away
-    #       a possibly cached installation.
-    - name: Replace OpenCV with Headless
-      run: |
-        export PIP_LIST="$(poetry run pip list --format=json)"
-        if (echo "$PIP_LIST" | poetry run ./scripts/pycv2_is_installed.py)
-        then
-          echo "OpenCV-Python installed, replacing with equivalent headless version."
-          VERSION="$(echo "$PIP_LIST" | poetry run  ./scripts/pycv2_installed_version.py)"
-          poetry run pip uninstall -y opencv-python opencv-python-headless
-          poetry run pip install --no-deps opencv-python-headless=="$VERSION"
-        else
-          echo "OpenCV-Python NOT installed, skipping."
-        fi
-      shell: bash
-
     - name: Run PyTest
       run: poetry run pytest
       shell: bash
@@ -104,7 +84,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        python-version: ["3.9"]
+        python-version: ["3.10"]
         include:
           - operating-system: ubuntu-latest
             path: ~/.cache/pip
@@ -134,7 +114,7 @@ jobs:
       run: poetry install
 
     - name: Run checks
-      run: poetry run pre-commit run --files $(find albumentations -type f)
+      run: poetry run pre-commit run --files $(find albumentations albucore -type f)
 
   check_defaults_in_apply:
     name: Check Defaults In Apply
@@ -142,7 +122,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        python-version: ["3.9"]
+        python-version: ["3.10"]
         include:
           - operating-system: ubuntu-latest
             path: ~/.cache/pip

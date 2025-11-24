@@ -8,11 +8,10 @@ border handling options.
 from __future__ import annotations
 
 import math
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 import cv2
 import numpy as np
-from typing_extensions import Literal
 
 from albumentations.augmentations.crops import functional as fcrops
 from albumentations.augmentations.geometric.transforms import Affine
@@ -469,11 +468,12 @@ class Rotate(DualTransform):
             np.ndarray: Transformed mask.
 
         """
+        fill_mask_value: tuple[float, ...] | float = self.fill_mask if self.fill_mask is not None else 0
         img_out = fgeometric.warp_affine(
             mask,
             matrix,
             self.mask_interpolation,
-            self.fill_mask,
+            fill_mask_value,
             self.border_mode,
             params["shape"][:2],
         )

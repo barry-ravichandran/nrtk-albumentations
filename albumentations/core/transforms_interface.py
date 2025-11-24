@@ -10,15 +10,16 @@ and serialization capabilities that are inherited by concrete transform implemen
 from __future__ import annotations
 
 import random
+from collections.abc import Callable
 from copy import deepcopy
-from typing import Any, Callable
+from typing import Any
 from warnings import warn
 
 import cv2
 import numpy as np
-from albucore import batch_transform
 from pydantic import BaseModel, ConfigDict, Field
 
+from albucore import batch_transform
 from albumentations.core.bbox_utils import BboxProcessor
 from albumentations.core.keypoints_utils import KeypointsProcessor
 from albumentations.core.validation import ValidatedTransformMeta

@@ -10,13 +10,26 @@ from __future__ import annotations
 import math
 import numbers
 import warnings
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from functools import partial
-from typing import Annotated, Any, Callable, Union, cast
+from typing import Annotated, Any, Literal, cast
 
-import albucore
 import cv2
 import numpy as np
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
+from scipy import special
+from typing_extensions import Self
+
+import albucore
+import albumentations.augmentations.geometric.functional as fgeometric
 from albucore import (
     MAX_VALUES_BY_DTYPE,
     NUM_MULTI_CHANNEL_DIMENSIONS,
@@ -30,19 +43,6 @@ from albucore import (
     normalize_per_image,
     normalize_per_image_batch,
 )
-from pydantic import (
-    AfterValidator,
-    BaseModel,
-    ConfigDict,
-    Field,
-    ValidationInfo,
-    field_validator,
-    model_validator,
-)
-from scipy import special
-from typing_extensions import Literal, Self
-
-import albumentations.augmentations.geometric.functional as fgeometric
 from albumentations.augmentations.blur import functional as fblur
 from albumentations.augmentations.blur.transforms import BlurInitSchema
 from albumentations.augmentations.pixel import functional as fpixel
@@ -755,7 +755,7 @@ class RandomGravel(ImageOnlyTransform):
 
         # Calculate ROI in pixels
         x_min, y_min, x_max, y_max = (
-            int(coord * dim) for coord, dim in zip(self.gravel_roi, [width, height, width, height])
+            int(coord * dim) for coord, dim in zip(self.gravel_roi, [width, height, width, height], strict=False)
         )
 
         roi_width = x_max - x_min
@@ -2196,7 +2196,7 @@ class Posterize(ImageOnlyTransform):
         p: float = 0.5,
     ):
         super().__init__(p=p)
-        self.num_bits = cast("Union[tuple[int, int], list[tuple[int, int]]]", num_bits)
+        self.num_bits = cast("tuple[int, int] | list[tuple[int, int]]", num_bits)
 
     def apply(
         self,
@@ -4328,7 +4328,7 @@ class ColorJitter(ImageOnlyTransform):
         self.saturation = cast("tuple[float, float]", saturation)
         self.hue = cast("tuple[float, float]", hue)
 
-        self.transforms = [
+        self.transforms: list[Callable[[np.ndarray, float], np.ndarray]] = [
             fpixel.adjust_brightness_torchvision,
             fpixel.adjust_contrast_torchvision,
             fpixel.adjust_saturation_torchvision,
@@ -5994,7 +5994,7 @@ class BetaParams(NoiseParamsBase):
 
 
 NoiseParams = Annotated[
-    Union[UniformParams, GaussianParams, LaplaceParams, BetaParams],
+    UniformParams | GaussianParams | LaplaceParams | BetaParams,
     Field(discriminator="noise_type"),
 ]
 
@@ -7481,7 +7481,7 @@ class HEStain(ImageOnlyTransform):
 
         """
         non_rgb_error(img)
-        return fpixel.apply_he_stain_augmentation(
+        return fpixel.apply_he_stain_augmentation(  # type: ignore[call-arg]
             img=img,
             stain_matrix=stain_matrix,
             scale_factors=scale_factors,

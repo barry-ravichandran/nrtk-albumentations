@@ -8,19 +8,19 @@ network outputs back to standard image formats (FromFloat).
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
+from pydantic import (
+    model_validator,
+)
+from typing_extensions import Self
+
 from albucore import (
     from_float,
     get_max_value,
     to_float,
 )
-from pydantic import (
-    model_validator,
-)
-from typing_extensions import Literal, Self
-
 from albumentations.core.transforms_interface import (
     BaseTransformInitSchema,
     ImageOnlyTransform,

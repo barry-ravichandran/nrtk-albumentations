@@ -10,18 +10,18 @@ and simplify common operations across different augmentation transforms.
 from __future__ import annotations
 
 import functools
+from collections.abc import Callable
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar, cast
 
 import cv2
 import numpy as np
+
 from albucore.utils import (
     is_grayscale_image,
     is_multispectral_image,
     is_rgb_image,
 )
-from typing_extensions import Concatenate, ParamSpec
-
 from albumentations.core.keypoints_utils import angle_to_2pi_range
 
 if TYPE_CHECKING:

@@ -9,12 +9,14 @@ the core functionality for manipulating image data during the augmentation proce
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
-from typing import Any, Callable, Literal
+from collections.abc import Callable, Sequence
+from typing import Any, Literal
 from warnings import warn
 
 import cv2
 import numpy as np
+
+import albumentations.augmentations.geometric.functional as fgeometric
 from albucore import (
     MAX_VALUES_BY_DTYPE,
     add,
@@ -43,8 +45,6 @@ from albucore import (
     sz_lut,
     uint8_io,
 )
-
-import albumentations.augmentations.geometric.functional as fgeometric
 from albumentations.augmentations.utils import (
     PCA,
     non_rgb_error,
@@ -849,7 +849,7 @@ def add_fog(
     result = img.copy()
 
     # Apply fog particles progressively like in old version
-    for (x, y), radius in zip(fog_particle_positions, fog_particle_radiuses):
+    for (x, y), radius in zip(fog_particle_positions, fog_particle_radiuses, strict=False):
         overlay = result.copy()
         cv2.circle(
             overlay,
@@ -875,7 +875,6 @@ def add_fog(
 
 @uint8_io
 @preserve_channel_dim
-@maybe_process_in_chunks
 def add_sun_flare_overlay(
     img: np.ndarray,
     flare_center: tuple[float, float],
@@ -1121,7 +1120,7 @@ def add_shadow(
     img_shadowed = img.copy()
 
     # Iterate over the vertices and intensity list
-    for vertices, shadow_intensity in zip(vertices_list, intensities):
+    for vertices, shadow_intensity in zip(vertices_list, intensities, strict=False):
         # Create mask for the current shadow polygon
         mask = np.zeros((img.shape[0], img.shape[1], 1), dtype=np.uint8)
         cv2.fillPoly(mask, [vertices], (max_value,))
@@ -3276,7 +3275,7 @@ def create_contrast_lut(
     hist: np.ndarray,
     min_intensity: int,
     max_intensity: int,
-    max_value: int,
+    max_value: float,
     method: Literal["cdf", "pil"],
 ) -> np.ndarray:
     """Create lookup table for contrast adjustment.
