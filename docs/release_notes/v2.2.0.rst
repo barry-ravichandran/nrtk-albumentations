@@ -1,6 +1,11 @@
 v2.2.0
 ======
 
+This release aligns nrtk-albumentations with NRTK by integrating albucore as a
+sub-package and updating the minimum Python version to 3.10. The OpenCV
+dependency has been removed as the package is now designed to work as part of
+the NRTK ecosystem rather than standalone.
+
 Updates / New Features
 ----------------------
 
