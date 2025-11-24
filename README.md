@@ -59,10 +59,9 @@ transformed_image = transformed["image"]
 
 ## Documentation
 
-For detailed documentation on available transforms and usage patterns, see:
+Albumentations documentation is [hosted by the original authors](https://albumentations.ai/docs/). An [offline copy](./docs/albumentations-documentation.pdf) of the documentation has been included with this repository, with the expectation that the hosted documentation may eventually become unavailable or diverge from the forked functionality. This offline copy was generated from [this commit hash](https://github.com/albumentations-team/albumentations-ai-docs/tree/624837ded1550ab528f5b77e4f91d37cf7982a27). Note that some external files and links may not be functional.
 
-- [Albumentations (NRTK Fork) Documentation](https://nrtk-albumentations.readthedocs.io/)
-- [NRTK Documentation](https://nrtk.readthedocs.io/)
+For usage within the NRTK ecosystem, please refer to [NRTK Documentation](https://nrtk.readthedocs.io/).
 
 ## Available Transformations
 
