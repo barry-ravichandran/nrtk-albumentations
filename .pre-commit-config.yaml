@@ -15,6 +15,9 @@ repos:
     rev: v5.0.0
     hooks:
       - id: check-added-large-files
+        args:
+          # the unit here is acutally KiB (1024 bytes)
+          - '--maxkb=51200'  # match github max of 50MiB
       - id: check-ast
       - id: check-builtin-literals
       - id: check-case-conflict

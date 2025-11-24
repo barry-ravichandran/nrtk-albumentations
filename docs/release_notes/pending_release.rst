@@ -10,6 +10,10 @@ Updates / New Features
 
 * Removed OpenCV dependency. The package will no longer be able to be used standalone.
 
+* Added offline copy of forked documentation
+
+* Updated precommit check for large files to be consistent with NRTK
+
 Fixes
 -----
 
