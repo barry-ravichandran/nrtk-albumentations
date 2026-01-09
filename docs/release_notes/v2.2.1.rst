@@ -1,9 +1,6 @@
 v2.2.1
 ======
 
-Updates / New Features
-----------------------
-
 Fixes
 -----
 
