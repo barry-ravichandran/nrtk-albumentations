@@ -151,7 +151,9 @@ def test_scale(target):
 
     img, expected = convert_2d_to_target_format([img, expected], target=target)
     scaled = fgeometric.scale(img, scale=2, interpolation=cv2.INTER_LINEAR)
-    np.testing.assert_array_equal(scaled, expected)
+    # OpenCV 4.13 changed INTER_LINEAR rounding for uint8 — a few output pixels
+    # shift by ±1 vs. 4.9-4.12. Allow that tolerance so the test stays portable.
+    np.testing.assert_allclose(scaled, expected, atol=1)
 
 
 @pytest.mark.parametrize("target", ["image", "mask"])
