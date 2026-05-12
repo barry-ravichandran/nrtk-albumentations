@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, Literal
 
 import cv2
+import numkong as nk
 import numpy as np
-import simsimd as ss
 import stringzilla as sz
 
 from albucore.decorators import contiguous, preserve_channel_dim
@@ -30,35 +31,62 @@ np_operations = {"multiply": np.multiply, "add": np.add, "power": np.power}
 cv2_operations = {"multiply": cv2.multiply, "add": cv2.add, "power": cv2.pow}
 
 
-def add_weighted_simsimd(img1: np.ndarray, weight1: float, img2: np.ndarray, weight2: float) -> np.ndarray:
-    """Compute weighted sum of two images using SIMD operations."""
+def _add_weighted_numkong(img1: np.ndarray, weight1: float, img2: np.ndarray, weight2: float) -> np.ndarray:
+    """Compute weighted sum of two images using NumKong kernels."""
     original_shape = img1.shape
     original_dtype = img1.dtype
 
     if img2.dtype != original_dtype:
         img2 = clip(img2.astype(original_dtype, copy=False), original_dtype, inplace=True)
 
-    return np.frombuffer(
-        ss.wsum(img1.reshape(-1), img2.astype(original_dtype, copy=False).reshape(-1), alpha=weight1, beta=weight2),
-        dtype=original_dtype,
-    ).reshape(
-        original_shape,
-    )
+    img1 = img1.reshape(-1)
+    img2 = img2.astype(original_dtype, copy=False).reshape(-1)
+    out = np.empty_like(img1, dtype=original_dtype)
+    nk.blend(img1, img2, alpha=weight1, beta=weight2, out=out)
+    return out.reshape(original_shape)
 
 
-def add_array_simsimd(img: np.ndarray, value: np.ndarray) -> np.ndarray:
-    """Add array to image using SIMD operations."""
-    return add_weighted_simsimd(img, 1, value, 1)
+def _add_array_numkong(img: np.ndarray, value: np.ndarray) -> np.ndarray:
+    """Add array to image using NumKong kernels."""
+    return _add_weighted_numkong(img, 1, value, 1)
 
 
-def multiply_by_constant_simsimd(img: np.ndarray, value: float) -> np.ndarray:
-    """Multiply image by constant using SIMD operations."""
-    return add_weighted_simsimd(img, value, np.zeros_like(img), 0)
+def _multiply_by_constant_numkong(img: np.ndarray, value: float) -> np.ndarray:
+    """Multiply image by constant using NumKong kernels."""
+    return _add_weighted_numkong(img, value, np.zeros_like(img), 0)
 
 
-def add_constant_simsimd(img: np.ndarray, value: float) -> np.ndarray:
-    """Add constant to image using SIMD operations."""
-    return add_weighted_simsimd(img, 1, (np.ones_like(img) * value).astype(img.dtype, copy=False), 1)
+def _add_constant_numkong(img: np.ndarray, value: float) -> np.ndarray:
+    """Add constant to image using NumKong kernels."""
+    return _add_weighted_numkong(img, 1, (np.ones_like(img) * value).astype(img.dtype, copy=False), 1)
+
+
+def _deprecated_simsimd_alias(new_callable: Callable[..., Any], old_name: str) -> Callable[..., Any]:
+    """Wrap ``new_callable`` with a ``DeprecationWarning`` under the old ``*_simsimd`` name.
+
+    Kept for one release cycle so downstream code importing the old public names
+    continues to work while emitting a clear migration signal.
+    """
+
+    @wraps(new_callable)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        warnings.warn(
+            f"{old_name} is deprecated and will be removed in a future release. "
+            "Use the public `add_weighted` dispatcher in `albucore.functions` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return new_callable(*args, **kwargs)
+
+    wrapper.__name__ = old_name
+    wrapper.__qualname__ = old_name
+    return wrapper
+
+
+add_weighted_simsimd = _deprecated_simsimd_alias(_add_weighted_numkong, "add_weighted_simsimd")
+add_array_simsimd = _deprecated_simsimd_alias(_add_array_numkong, "add_array_simsimd")
+multiply_by_constant_simsimd = _deprecated_simsimd_alias(_multiply_by_constant_numkong, "multiply_by_constant_simsimd")
+add_constant_simsimd = _deprecated_simsimd_alias(_add_constant_numkong, "add_constant_simsimd")
 
 
 def create_lut_array(
@@ -454,7 +482,7 @@ def add_weighted(img1: np.ndarray, weight1: float, img2: np.ndarray, weight2: fl
     if img1.shape != img2.shape:
         raise ValueError(f"The input images must have the same shape. Got {img1.shape} and {img2.shape}.")
 
-    return add_weighted_simsimd(img1, weight1, img2, weight2)
+    return _add_weighted_numkong(img1, weight1, img2, weight2)
 
 
 def multiply_add_numpy(img: np.ndarray, factor: ValueType, value: ValueType) -> np.ndarray:
