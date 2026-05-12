@@ -26,11 +26,11 @@ jobs:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         include:
           - operating-system: ubuntu-latest
-            path: ~/.cache/pip
+            path: ~/.cache/pypoetry
           - operating-system: windows-latest
-            path: ~\AppData\Local\pip\Cache
+            path: ~\AppData\Local\pypoetry\Cache
           - operating-system: macos-latest
-            path: ~/Library/Caches/pip
+            path: ~/Library/Caches/pypoetry
       fail-fast: false
     steps:
     - name: Checkout
@@ -39,6 +39,7 @@ jobs:
         fetch-depth: 0
 
     - name: Set up Python
+      id: setup-python
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
@@ -46,10 +47,10 @@ jobs:
     - name: Restore Python cache
       uses: actions/cache/restore@v4
       with:
-        path: ${cache-dir}/virtualenvs
-        key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+        path: ${{ matrix.path }}/virtualenvs
+        key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
         restore-keys: |
-          ${{ runner.os }}-python-${{ matrix.python-version }}-
+          ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-
 
     - name: Install and configure Poetry
       uses: snok/install-poetry@v1
@@ -60,17 +61,10 @@ jobs:
 
     - name: Install PyTorch
       run: |
-        if [ "${{ matrix.python-version }}" = "3.14" ]; then
-          # torch 2.10.0 is the lowest version with cp314 wheels on all 3 CI OSes.
-          if [ "${{ matrix.operating-system }}" = "macos-latest" ]; then
-            poetry run pip install torch==2.10.0 torchvision==0.25.0
-          else
-            poetry run pip install torch==2.10.0+cpu torchvision==0.25.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu
-          fi
-        elif [ "${{ matrix.operating-system }}" = "macos-latest" ]; then
-          poetry run pip install torch==2.6.0 torchvision==0.21.0
+        if [ "${{ matrix.operating-system }}" = "macos-latest" ]; then
+          poetry run pip install torch==2.10.0 torchvision==0.25.0
         else
-          poetry run pip install torch==2.6.0+cpu torchvision==0.21.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu
+          poetry run pip install torch==2.10.0+cpu torchvision==0.25.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu
         fi
       shell: bash
 
@@ -84,12 +78,11 @@ jobs:
       run: poetry run pytest
       shell: bash
 
-    # Save/Update the Python cache prior to unittest extras
     - name: Save Python cache
       uses: actions/cache/save@v4
       with:
-        path: ${cache-dir}/virtualenvs
-        key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+        path: ${{ matrix.path }}/virtualenvs
+        key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
 
   pre_commit_hooks:
     name: Check Pre-Commit Hooks
@@ -100,7 +93,7 @@ jobs:
         python-version: ["3.10"]
         include:
           - operating-system: ubuntu-latest
-            path: ~/.cache/pip
+            path: ~/.cache/pypoetry
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -108,6 +101,7 @@ jobs:
         fetch-depth: 0
 
     - name: Set up Python
+      id: setup-python
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
@@ -115,10 +109,10 @@ jobs:
     - name: Restore Python cache
       uses: actions/cache/restore@v4
       with:
-        path: ${cache-dir}/virtualenvs
-        key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+        path: ${{ matrix.path }}/virtualenvs
+        key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
         restore-keys: |
-          ${{ runner.os }}-python-${{ matrix.python-version }}-
+          ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-
 
     - name: Install and configure Poetry
       uses: snok/install-poetry@v1
@@ -138,7 +132,7 @@ jobs:
         python-version: ["3.10"]
         include:
           - operating-system: ubuntu-latest
-            path: ~/.cache/pip
+            path: ~/.cache/pypoetry
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -146,6 +140,7 @@ jobs:
         fetch-depth: 0
 
     - name: Set up Python
+      id: setup-python
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
@@ -153,10 +148,10 @@ jobs:
     - name: Restore Python cache
       uses: actions/cache/restore@v4
       with:
-        path: ${cache-dir}/virtualenvs
-        key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+        path: ${{ matrix.path }}/virtualenvs
+        key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
         restore-keys: |
-          ${{ runner.os }}-python-${{ matrix.python-version }}-
+          ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-
 
     - name: Install and configure Poetry
       uses: snok/install-poetry@v1
