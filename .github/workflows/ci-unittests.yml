@@ -68,6 +68,12 @@ jobs:
       shell: bash
 
     - name: Run PyTest
+      env:
+        # macOS-arm64 only: numkong and torch each ship their own libomp,
+        # which dyld loads as two separate runtimes. Concurrent OMP work
+        # from both copies segfaults torch tensor ops mid-suite. Pinning
+        # OMP to one thread eliminates the contention.
+        OMP_NUM_THREADS: ${{ matrix.operating-system == 'macos-latest' && '1' || '' }}
       run: poetry run pytest
       shell: bash
 

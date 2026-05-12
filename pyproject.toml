@@ -5,7 +5,7 @@ requires = [ "poetry-core>=2" ]
 
 [tool.poetry]
 name = "nrtk-albumentations"
-version = "2.2.1"
+version = "2.2.2"
 description = "Fork of Albumentations in direct support of NRTK (Natural Robustness Toolkit). Fast, flexible, and advanced augmentation library for deep learning, computer vision, and medical imaging. Offers a wide range of transformations for both 2D (images, masks, bboxes, keypoints) and 3D (volumes, volumetric masks, keypoints) data, with optimized performance and seamless integration into ML workflows."
 authors = [ "Vladimir Iglovikov" ]
 maintainers = [ "Kitware, Inc. <nrtk@kitware.com>" ]
@@ -102,7 +102,7 @@ Homepage = "https://nrtk.readthedocs.io/"
 python = "^3.10"
 numpy = ">=1.26"
 scipy = ">=1.14.1"
-simsimd = ">=5.9.2"
+numkong = ">=7"
 stringzilla = ">=3.10.4"
 PyYAML = "*"
 typing-extensions = ">=4.9.0"

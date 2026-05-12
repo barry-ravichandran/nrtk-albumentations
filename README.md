@@ -63,6 +63,14 @@ Albumentations documentation is [hosted by the original authors](https://albumen
 
 For usage within the NRTK ecosystem, please refer to [NRTK Documentation](https://nrtk.readthedocs.io/).
 
+## Known Issues
+
+**macOS Apple Silicon + PyTorch:** `numkong` (used internally) and PyTorch each bundle their own `libomp.dylib`. On macOS-arm64, dyld loads both into the same process, and concurrent OpenMP work from the two runtimes can segfault torch tensor operations. Workaround: set `OMP_NUM_THREADS=1` in your environment. Linux and Windows are unaffected.
+
+```bash
+export OMP_NUM_THREADS=1
+```
+
 ## Available Transformations
 
 Albumentations provides 70+ transforms across several categories:
