@@ -15,6 +15,58 @@ class MockWorkerInfo:
         self.id = id
 
 
+# Module-scope datasets for DataLoader tests below: Python 3.14 switched the
+# Linux default multiprocessing start method from `fork` to `forkserver`, which
+# pickles the worker payload by qualified name. Classes defined inside a test
+# function aren't reachable that way and fail with PicklingError.
+class _WorkerSeedDataset:
+    def __init__(self, transform):
+        self.transform = transform
+        self.worker_results = {}
+
+    def __len__(self):
+        return 10
+
+    def __getitem__(self, idx):
+        import torch.utils.data
+
+        worker_info = torch.utils.data.get_worker_info()
+        worker_id = worker_info.id if worker_info else -1
+
+        # Create an asymmetric test image to properly detect flips
+        img = np.zeros((10, 10, 3), dtype=np.uint8)
+        img[:, :5] = 255  # Left half white, right half black
+
+        result = self.transform(image=img)
+        # Return whether the image was flipped (check if left corner is black)
+        was_flipped = result["image"][0, 0, 0] == 0
+
+        # Store result by worker
+        if worker_id not in self.worker_results:
+            self.worker_results[worker_id] = []
+        self.worker_results[worker_id].append((idx, was_flipped))
+
+        return float(was_flipped)
+
+
+class _EpochDiversityDataset:
+    def __init__(self, transform):
+        self.transform = transform
+        # Create identical images
+        self.data = [np.ones((10, 10, 3), dtype=np.uint8) * 255] * 4
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        image = self.data[idx].copy()
+        if self.transform:
+            augmented = self.transform(image=image)
+            image = augmented["image"]
+        # Return sum of pixel values as a simple hash
+        return float(np.sum(image))
+
+
 def test_worker_seed_without_torch():
     """Test that worker seed functionality works when PyTorch is not available."""
     # Create compose (worker-aware seed is now always enabled)
@@ -41,40 +93,12 @@ def test_worker_seed_with_torch():
     import torch
     import torch.utils.data
 
-    class TestDataset(torch.utils.data.Dataset):
-        def __init__(self, transform):
-            self.transform = transform
-            self.worker_results = {}
-
-        def __len__(self):
-            return 10
-
-        def __getitem__(self, idx):
-            # Track which worker processed which index
-            worker_info = torch.utils.data.get_worker_info()
-            worker_id = worker_info.id if worker_info else -1
-
-            # Create an asymmetric test image to properly detect flips
-            img = np.zeros((10, 10, 3), dtype=np.uint8)
-            img[:, :5] = 255  # Left half white, right half black
-
-            result = self.transform(image=img)
-            # Return whether the image was flipped (check if left corner is black)
-            was_flipped = result['image'][0, 0, 0] == 0
-
-            # Store result by worker
-            if worker_id not in self.worker_results:
-                self.worker_results[worker_id] = []
-            self.worker_results[worker_id].append((idx, was_flipped))
-
-            return float(was_flipped)
-
     # Test with worker-aware seed (now always enabled)
     transform = A.Compose([
         A.HorizontalFlip(p=0.5),
     ], seed=137)
 
-    dataset = TestDataset(transform)
+    dataset = _WorkerSeedDataset(transform)
 
     # Test 1: Verify different workers produce different results with same indices
     loader = torch.utils.data.DataLoader(
@@ -125,23 +149,6 @@ def test_dataloader_epoch_diversity():
     import torch
     import torch.utils.data
 
-    class SimpleDataset(torch.utils.data.Dataset):
-        def __init__(self, transform):
-            self.transform = transform
-            # Create identical images
-            self.data = [np.ones((10, 10, 3), dtype=np.uint8) * 255] * 4
-
-        def __len__(self):
-            return len(self.data)
-
-        def __getitem__(self, idx):
-            image = self.data[idx].copy()
-            if self.transform:
-                augmented = self.transform(image=image)
-                image = augmented['image']
-            # Return sum of pixel values as a simple hash
-            return float(np.sum(image))
-
     # Create transform with fixed seed (worker-aware seed is always enabled)
     transform = A.Compose([
         A.RandomBrightnessContrast(p=1.0, brightness_limit=0.3),
@@ -149,7 +156,7 @@ def test_dataloader_epoch_diversity():
         A.Rotate(limit=30, p=0.5),
     ], seed=42)
 
-    dataset = SimpleDataset(transform=transform)
+    dataset = _EpochDiversityDataset(transform=transform)
 
     # Test with persistent_workers=False
     dataloader = torch.utils.data.DataLoader(
