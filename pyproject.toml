@@ -76,6 +76,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
   "Topic :: Scientific/Engineering :: Astronomy",
@@ -98,10 +99,29 @@ exclude = [ "tests", "tools", "benchmark", "docs", ".github" ]
 [tool.poetry.urls]
 Homepage = "https://nrtk.readthedocs.io/"
 
+# ---------------------------------------------------------------------------
+# Multi-constraint dependency pins
+# ---------------------------------------------------------------------------
+# Any dependency declared as an array of `{ version = ..., python = ... }`
+# entries below splits its floor per Python sub-range. The split is needed
+# because Poetry's resolver locks one version per dependency across the
+# project's entire `python = "^3.10"` range; without per-sub-range floors,
+# the resolver either picks a version whose wheel set doesn't cover Python
+# 3.14 (install failure) or forces a 3.14-era floor onto older Pythons.
+# Reference:
+# https://stackoverflow.com/questions/77431252/why-doesnt-poetry-select-the-good-version-of-my-dependency
+# ---------------------------------------------------------------------------
+
 [tool.poetry.dependencies]
 python = "^3.10"
-numpy = ">=1.26"
-scipy = ">=1.14.1"
+numpy = [
+  { version = ">=2.0", python = "<3.14" },    # numpy 2.x baseline floor
+  { version = ">=2.3.0", python = ">=3.14" }, # py3.14 floor; forces resolver past releases lacking cp314 wheels
+]
+scipy = [
+  { version = ">=1.14.1", python = "<3.14" },
+  { version = ">=1.16.2", python = ">=3.14" }, # py3.14 floor; forces resolver past releases lacking cp314 wheels
+]
 numkong = ">=7"
 stringzilla = ">=3.10.4"
 PyYAML = "*"
@@ -124,11 +144,23 @@ pytest-cov = ">=5.0.0"
 pytest-mock = ">=3.14.0"
 pytz = "*"
 requests = ">=2.31.0"
-scikit-image = "*"
-scikit-learn = "*"
+scikit-image = [
+  { version = "*", python = "<3.14" },
+  { version = ">=0.26.0", python = ">=3.14,<3.15" }, # py3.14 floor; forces resolver past releases lacking cp314 wheels
+]
+scikit-learn = [
+  { version = "*", python = "<3.14" },
+  { version = ">=1.7.2", python = ">=3.14,<3.15" }, # py3.14 floor; forces resolver past releases lacking cp314 wheels
+]
 tomli = ">=2.0.1"
-torch = ">=2.3.1"
-torchvision = ">=0.18.1"
+torch = [
+  { version = ">=2.3.1", python = "<3.14" },
+  { version = ">=2.10.0", python = ">=3.14,<3.15" }, # py3.14 floor; forces resolver past releases lacking cp314 wheels
+]
+torchvision = [
+  { version = ">=0.18.1", python = "<3.14" },
+  { version = ">=0.25.0", python = ">=3.14,<3.15" }, # py3.14 floor (paired with torch>=2.10.0); forces resolver past releases lacking cp314 wheels
+]
 types-PyYAML = "*"
 types-setuptools = "*"
 
